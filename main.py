@@ -23,7 +23,7 @@ def getSpecificTorrentsList(tracker):
 def getAllTorrentsList():
     global reqID
     reqID += 1      #A FAIRE SUPER IMPORTANT
-    data = {"method":"web.update_ui","params":[["queue","name","total_wanted","state","progress","num_seeds","total_seeds","num_peers","total_peers","download_payload_rate","upload_payload_rate","eta","ratio","distributed_copies","is_auto_managed","time_added","tracker_host","download_location","last_seen_complete","total_done","total_uploaded","max_download_speed","max_upload_speed","seeds_peers_ratio","total_remaining","completed_time","time_since_transfer","label"],{"tracker_host":""}],"id":reqID}
+    data = {"method":"web.update_ui","params":[["queue","name","total_wanted","state","progress","num_seeds","total_seeds","num_peers","total_peers","download_payload_rate","upload_payload_rate","eta","ratio","distributed_copies","is_auto_managed","time_added","tracker_host","download_location","last_seen_complete","total_done","total_uploaded","max_download_speed","max_upload_speed","seeds_peers_ratio","total_remaining","completed_time","time_since_transfer","label"],{}],"id":reqID}
     req = post(url, headers=headers, json=data)
     return req.json()
     
@@ -49,11 +49,12 @@ def auto():
                deleteTrackers(j, getSpecificTorrentsList(tracker)['result']['torrents'][j]['name'])
     for a in getAllTorrentsList()['result']['torrents']:
         progress = getAllTorrentsList()['result']['torrents'][a]['progress']
-        if progress==100:
+        if progress==100 and not getAllTorrentsList()['result']['torrents'][a]['tracker_host'] == "joinpeers.org":
              addTrackers(a, getAllTorrentsList()['result']['torrents'][a]['name'])
         
-while True:
+
+while 1:
     auto()
     sleep(5)
 
-#http://connect.joinpeers.org:8080/xJpxLN32Qy8PRlOl6hYaoEsl8uAoFk9j/announce
+#getAllTorrentsList()['result']['torrents'][a]['tracker_host'] == "joinpeers.org"
