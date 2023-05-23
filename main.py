@@ -56,5 +56,3 @@ def auto():
 while 1:
     auto()
     sleep(5)
-
-#getAllTorrentsList()['result']['torrents'][a]['tracker_host'] == "joinpeers.org"
