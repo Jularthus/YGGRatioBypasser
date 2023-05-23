@@ -55,4 +55,3 @@ def auto():
 
 while 1:
     auto()
-    sleep(5)
