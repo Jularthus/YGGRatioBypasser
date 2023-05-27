@@ -1,9 +1,7 @@
 from requests import post
-from properties import pwd  #Le mot de passe est stocké dans un fichier à part
+from properties import pwd, webhook_url  #Le mot de passe est stocké dans un fichier à part
 from time import sleep
 from os import system
-
-#sleep(5)
 
 system("title " + 'YGGRatioBypasser by JA')
 print('''
@@ -35,7 +33,7 @@ data = {"id": reqID, "method": "auth.login", "params": [pwd]}
 getAuth = post(url, headers=headers, json=data)
 headers['Cookie'] = getAuth.headers['Set-Cookie'].split(";")[0]
 
-#Permet de récupérer tous les torrents qui ont un certain tracker
+#Permet de récupérer tous les torrents qui ont un certain tracker_org
 def getSpecificTorrentsList(tracker):
     global reqID
     reqID += 1
@@ -58,6 +56,8 @@ def deleteTrackers(torrentID, name):
     data = {"method":"core.set_torrent_trackers","params":[torrentID,[]],"id":reqID}
     post(url, headers=headers, json=data)
     print(f'[ DEL ] Trackers supprimés pour {name} !\n')
+    discord_data = {"username":"YGGRatioBypass", "embeds":[{"title": f":white_check_mark: Trackers supprimés pour `{name}`","color": 0x00bb19,"footer": {"text": "YGGRatioBypass"}}]}
+    post(webhook_url, json=discord_data)
 
 #Rajoute un tracker (-> s'est révélé parfaitement inutile mais fonctionnel)
 def addTrackers(torrentID, name, tracker):
@@ -67,13 +67,27 @@ def addTrackers(torrentID, name, tracker):
     post(url, headers=headers, json=data)
     print(f'[ OK ] Trackers mis à jour pour {name} ({tracker})!\n')
 
+#verification que le torrent ne possede pas le tracker (actualisation lente de l'UI Deluge -> c'est obligatoire)
+def checkTracker(torrentID):
+    global reqID
+    reqID += 1
+    data = {"method":"core.get_torrent_status","params":[torrentID,["trackers"]],"id":reqID}
+    a = post(url, headers=headers, json=data)
+    if a.json()['result']['trackers']:
+        return True
+    else:
+        return False
+
 #Le programme qui tourne en boucle
 def auto():
+    
     global reqID
     for j in getSpecificTorrentsList(tracker_org)['result']['torrents']:
         progress = getSpecificTorrentsList(tracker_org)['result']['torrents'][j]['progress']
         if progress>0 and progress<100:
+            if checkTracker(j):
                deleteTrackers(j, getSpecificTorrentsList(tracker_org)['result']['torrents'][j]['name'])
+            
     
     #Commandes pour rajouter le ratio a la fin
     #MEGA USELESS (le ratio s'actualise quand meme quand on rajoute à la fin)
